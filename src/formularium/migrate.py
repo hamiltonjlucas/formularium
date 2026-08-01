@@ -25,7 +25,7 @@ from .catalog import Constant, load_constants, load_quantities
 from .domains import DOMAINS, package_name
 from .emit import (
     SCOPE,
-    TYPES_PKG,
+    SHARED_PKG,
     constant_node_name,
     emit_constant_node,
     emit_constant_test,
@@ -46,7 +46,7 @@ from .emit import (
 from .natvals import fixture_values, natural_units_values
 from .printer import evaluate_sympy
 
-TYPES_VERSION = "0.1.0"
+SHARED_VERSION = "0.2.0"
 
 
 def _run(cmd: list[str], cwd: Path, check: bool = True) -> subprocess.CompletedProcess:
@@ -68,12 +68,40 @@ def _ensure_package(out_root: Path, pkg: str, report: list[str]) -> Path:
     return pkg_dir
 
 
-def _ensure_types_import(pkg_dir: Path, report: list[str]) -> None:
+def _strip_stale_types_import(pkg_dir: Path, report: list[str]) -> None:
+    """Remove any leftover import of the retired formularium-types package."""
+    manifest_path = pkg_dir / "axiom.yaml"
+    manifest = yaml.safe_load(manifest_path.read_text())
+    imports = manifest.get("imports") or []
+    kept = [i for i in imports if i.get("package") != "hamiltonjlucas/formularium-types"]
+    if len(kept) != len(imports):
+        if kept:
+            manifest["imports"] = kept
+        else:
+            manifest.pop("imports", None)
+        manifest_path.write_text(
+            yaml.dump(manifest, default_flow_style=False, sort_keys=False, width=100)
+        )
+        shutil.rmtree(pkg_dir / "imports" / "hamiltonjlucas-formularium-types",
+                      ignore_errors=True)
+        stale = pkg_dir / "gen" / "hamiltonjlucas_formularium_types_messages_pb2.py"
+        stale.unlink(missing_ok=True)
+        report.append(f"{pkg_dir.name}: stripped stale formularium-types import")
+
+
+def _ensure_shared_import(pkg_dir: Path, report: list[str]) -> None:
+    """Domain/engine packages import the shared vocabulary from formularium-constants."""
+    _strip_stale_types_import(pkg_dir, report)
     manifest = yaml.safe_load((pkg_dir / "axiom.yaml").read_text())
     imports = manifest.get("imports") or []
-    if not any(i.get("package") == TYPES_PKG for i in imports):
-        _run(["axiom", "import", f"{TYPES_PKG}@{TYPES_VERSION}"], cwd=pkg_dir)
-        report.append(f"{pkg_dir.name}: imported {TYPES_PKG}@{TYPES_VERSION}")
+    if not any(i.get("package") == SHARED_PKG for i in imports):
+        out = _run(["axiom", "import", f"{SHARED_PKG}@{SHARED_VERSION}"], cwd=pkg_dir,
+                   check=False)
+        if out.returncode != 0:
+            report.append(f"{pkg_dir.name}: axiom import {SHARED_PKG} FAILED: "
+                          f"{(out.stdout + out.stderr).strip()[:200]}")
+        else:
+            report.append(f"{pkg_dir.name}: imported {SHARED_PKG}@{SHARED_VERSION}")
 
 
 def _write_manifest(pkg_dir: Path, description: str, nodes: list[dict]) -> None:
@@ -119,7 +147,7 @@ def _generate_constants_package(
 ) -> bool:
     pkg = "formularium-constants"
     pkg_dir = _ensure_package(out_root, pkg, report)
-    _ensure_types_import(pkg_dir, report)
+    _strip_stale_types_import(pkg_dir, report)  # carries the shared vocabulary itself
     _clean_generated_nodes(pkg_dir)
 
     (pkg_dir / "messages" / "messages.proto").write_text(emit_constants_proto(pkg))
@@ -173,7 +201,6 @@ def _generate_domain_package(
 ) -> bool:
     pkg = package_name(domain)
     pkg_dir = _ensure_package(out_root, pkg, report)
-    _ensure_types_import(pkg_dir, report)
     _clean_generated_nodes(pkg_dir)
 
     # quantities referenced by this domain's formulas
@@ -184,7 +211,10 @@ def _generate_domain_package(
     )
     dom_quants = [q for q in quantities if q.symbol in ref_syms]
 
+    # write the (Empty-free) proto BEFORE importing, or the importer reports a
+    # collision with the previous generation's local Empty
     (pkg_dir / "messages" / "messages.proto").write_text(emit_domain_proto(pkg, analyses))
+    _ensure_shared_import(pkg_dir, report)
     (pkg_dir / "nodes" / "specs.py").write_text(emit_domain_specs(domain, analyses, dom_quants))
 
     from .emit import emit_formula_node, emit_formula_test

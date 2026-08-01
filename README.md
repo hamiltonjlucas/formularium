@@ -13,8 +13,7 @@ Axiom packages, each in its own public repository:
 
 | Package | Contents |
 |---|---|
-| `hamiltonjlucas/formularium-types` | shared protobuf contracts (specs, catalog, reports) |
-| `hamiltonjlucas/formularium-constants` | 71 constant nodes + `GetCatalog` |
+| `hamiltonjlucas/formularium-constants` | 71 constant nodes + `GetCatalog`, **plus the shared protobuf contracts** (specs, catalog, reports) that every other package imports |
 | `hamiltonjlucas/formularium-electroweak` | 11 formula nodes (W/Z masses, Higgs, Yukawa structure) |
 | `hamiltonjlucas/formularium-flavor` | 17 formula nodes (Koide, Gatto, CKM, Yukawa values) |
 | `hamiltonjlucas/formularium-bz-cascade` | 11 formula nodes (BZ-scale cascade relations) |
