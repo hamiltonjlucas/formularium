@@ -18,7 +18,7 @@ from sympy import Eq, Symbol, sympify
 def parse_formula(expression: str) -> Eq:
     eq = sympify(expression)
     if not isinstance(eq, Eq):
-        raise ValueError(f"expression is not an Eq: {expression!r}")
+        raise TypeError(f"expression is not an Eq: {expression!r}")
     return eq
 
 
