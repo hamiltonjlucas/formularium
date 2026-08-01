@@ -1,0 +1,18 @@
+name: hamiltonjlucas/formularium-synthesize-sweep
+version: 0.2.0
+description: >-
+  Streaming exhaustive formula synthesis over the Formularium catalog: every formula
+  pair sharing an eliminable quantity is solved, substituted, simplified, deduped by
+  numeric fingerprint, and verified in natural units; each distinct new relation is
+  streamed as it is found (bridge relations first-class), with a final stats frame.
+  Input carries the assembled Catalog plus deterministic shard coordinates and a
+  wall-clock budget. Pipeline-mode: invoke via the SSE endpoint.
+
+pipeline_mode: true
+
+nodes:
+  - alias: synthesize
+    package: hamiltonjlucas/formularium-engine@0.1.0
+    node: SynthesizeRelations
+
+edges: []

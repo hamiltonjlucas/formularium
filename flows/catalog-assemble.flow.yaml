@@ -1,0 +1,63 @@
+name: hamiltonjlucas/formularium-catalog-assemble
+version: 0.2.0
+description: >-
+  Assemble the complete Formularium physics catalog: fan out to every package's
+  GetCatalog node (71 physical constants plus the 8 physics domain packages holding
+  102 formula specs and their quantities) and merge the slices into one Catalog
+  message — the input every Formularium engine node consumes.
+
+input_facade:
+  message_name: AssembleRequest
+  description: Trigger for a catalog assembly; carries no required data.
+  fields:
+    note:
+      kind: string
+      optional: true
+      description: Optional free-form label for this assembly run; not used by any node.
+
+nodes:
+  - { alias: constants, package: hamiltonjlucas/formularium-constants@0.2.0, node: GetCatalog }
+  - { alias: electroweak, package: hamiltonjlucas/formularium-electroweak@0.2.0, node: GetCatalog }
+  - { alias: flavor, package: hamiltonjlucas/formularium-flavor@0.2.0, node: GetCatalog }
+  - { alias: bz_cascade, package: hamiltonjlucas/formularium-bz-cascade@0.2.0, node: GetCatalog }
+  - { alias: atomic, package: hamiltonjlucas/formularium-atomic@0.2.0, node: GetCatalog }
+  - { alias: em_si, package: hamiltonjlucas/formularium-em-si@0.2.0, node: GetCatalog }
+  - { alias: gravity_thermo, package: hamiltonjlucas/formularium-gravity-thermo@0.2.0, node: GetCatalog }
+  - { alias: cosmology, package: hamiltonjlucas/formularium-cosmology@0.2.0, node: GetCatalog }
+  - { alias: quantum_info, package: hamiltonjlucas/formularium-quantum-info@0.2.0, node: GetCatalog }
+  - alias: assemble
+    package: hamiltonjlucas/formularium-engine@0.1.0
+    node: AssembleCatalog
+    config:
+      join: { kind: AND }
+      compose:
+        compose_plan:
+          constants: { src_edge: constants }
+          electroweak: { src_edge: electroweak }
+          flavor: { src_edge: flavor }
+          bz_cascade: { src_edge: bz_cascade }
+          atomic: { src_edge: atomic }
+          em_si: { src_edge: em_si }
+          gravity_thermo: { src_edge: gravity_thermo }
+          cosmology: { src_edge: cosmology }
+          quantum_info: { src_edge: quantum_info }
+
+edges:
+  - { from: "@flow_input", to: constants }
+  - { from: "@flow_input", to: electroweak }
+  - { from: "@flow_input", to: flavor }
+  - { from: "@flow_input", to: bz_cascade }
+  - { from: "@flow_input", to: atomic }
+  - { from: "@flow_input", to: em_si }
+  - { from: "@flow_input", to: gravity_thermo }
+  - { from: "@flow_input", to: cosmology }
+  - { from: "@flow_input", to: quantum_info }
+  - { from: constants, to: assemble }
+  - { from: electroweak, to: assemble }
+  - { from: flavor, to: assemble }
+  - { from: bz_cascade, to: assemble }
+  - { from: atomic, to: assemble }
+  - { from: em_si, to: assemble }
+  - { from: gravity_thermo, to: assemble }
+  - { from: cosmology, to: assemble }
+  - { from: quantum_info, to: assemble }

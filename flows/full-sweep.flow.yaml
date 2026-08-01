@@ -1,0 +1,68 @@
+# The catalog-assemble subflow id below is minted by:
+#   axiom flow compile flows/catalog-assemble.flow.yaml
+# Re-fill SUBFLOW_ARTIFACT_ID after any recompile of the assembly flow.
+name: hamiltonjlucas/formularium-full-sweep
+version: 0.2.0
+description: >-
+  Run every Formularium discovery engine over the freshly assembled physics catalog in
+  parallel — validation, natural-units dimensional analysis, unit-annotation checks,
+  the relationship graph, structural bridge analysis, curated symbolic derivations,
+  orphan-constant relation discovery, and Buckingham-pi group enumeration — and merge
+  the results into a single SweepReport with a rendered summary.
+
+input_facade:
+  message_name: SweepRequest
+  description: Trigger for a full catalog sweep; carries no required data.
+  fields:
+    note:
+      kind: string
+      optional: true
+      description: Optional free-form label for this sweep run; not used by any node.
+
+nodes:
+  - alias: catalog
+    subflow: SUBFLOW_ARTIFACT_ID
+    input: AssembleRequest
+    output: Catalog
+  - { alias: validate, package: hamiltonjlucas/formularium-engine@0.1.0, node: ValidateCatalog }
+  - { alias: dims, package: hamiltonjlucas/formularium-engine@0.1.0, node: CheckDimensions }
+  - { alias: units, package: hamiltonjlucas/formularium-engine@0.1.0, node: CheckUnits }
+  - { alias: graph, package: hamiltonjlucas/formularium-engine@0.1.0, node: BuildGraph }
+  - { alias: structure, package: hamiltonjlucas/formularium-engine@0.1.0, node: AnalyzeStructure }
+  - { alias: derive, package: hamiltonjlucas/formularium-engine@0.1.0, node: DeriveRelations }
+  - { alias: discover, package: hamiltonjlucas/formularium-engine@0.1.0, node: DiscoverRelations }
+  - { alias: buckingham, package: hamiltonjlucas/formularium-engine@0.1.0, node: Buckingham }
+  - alias: report
+    package: hamiltonjlucas/formularium-engine@0.1.0
+    node: AssembleSweepReport
+    config:
+      join: { kind: AND }
+      compose:
+        compose_plan:
+          validation: { src_edge: validate }
+          dimensions: { src_edge: dims }
+          units: { src_edge: units }
+          graph: { src_edge: graph }
+          structure: { src_edge: structure }
+          derive: { src_edge: derive }
+          discover: { src_edge: discover }
+          buckingham: { src_edge: buckingham }
+
+edges:
+  - { from: "@flow_input", to: catalog }
+  - { from: catalog, to: validate }
+  - { from: catalog, to: dims }
+  - { from: catalog, to: units }
+  - { from: catalog, to: graph }
+  - { from: catalog, to: structure }
+  - { from: catalog, to: derive }
+  - { from: catalog, to: discover }
+  - { from: catalog, to: buckingham }
+  - { from: validate, to: report }
+  - { from: dims, to: report }
+  - { from: units, to: report }
+  - { from: graph, to: report }
+  - { from: structure, to: report }
+  - { from: derive, to: report }
+  - { from: discover, to: report }
+  - { from: buckingham, to: report }
