@@ -70,7 +70,8 @@ syntax = "proto3";
 package {proto_pkg};
 
 // Empty input for zero-argument nodes (getters and constant-valued formulas).
-message Empty {{}}
+message Empty {{
+}}
 """
 
 
@@ -178,27 +179,7 @@ def emit_domain_specs(
             "    ),",
         ]
     lines.append("}")
-    lines += [
-        "",
-        "",
-        "def domain_catalog_msg():",
-        '    """This package\'s slice of the catalog as a formularium-types DomainCatalog."""',
-        f"    from {TYPES_BINDINGS} import DomainCatalog",
-        "",
-        "    m = DomainCatalog(domain=DOMAIN)",
-        "    for f in FORMULAS.values():",
-        "        m.formulas.add(",
-        "            id=f.id, name=f.name, expression=f.expression, symbols=f.symbols,",
-        "            input_symbols=f.input_symbols, computes=f.computes, tier=f.tier,",
-        "            provenance=f.provenance, refs=f.refs, notes=f.notes,",
-        "            dimensional_check=f.dimensional_check, domain=f.domain,",
-        "        )",
-        "    for q in QUANTITIES.values():",
-        "        m.quantities.add(symbol=q.symbol, name=q.name, mass_dim=q.mass_dim,",
-        "                         kind=q.kind, notes=q.notes)",
-        "    return m",
-        "",
-    ]
+    lines.append("")
     return "\n".join(lines)
 
 
@@ -252,34 +233,7 @@ def emit_constants_specs(constants: list[Constant]) -> str:
             lines.append(f"        related_formulas={_pylist(c.related_formulas)},")
         lines.append("    ),")
     lines.append("}")
-    lines += [
-        "",
-        "",
-        "def constant_msg(symbol: str):",
-        '    """One constant as a formularium-types ConstantSpec message."""',
-        f"    from {TYPES_BINDINGS} import ConstantSpec as ConstantSpecMsg",
-        "",
-        "    c = CONSTANTS[symbol]",
-        "    m = ConstantSpecMsg(",
-        "        symbol=c.symbol, name=c.name, value=c.value, unit=c.unit,",
-        "        mass_dim=c.mass_dim, tier=c.tier, source=c.source,",
-        "        aliases=c.aliases, notes=c.notes, related_formulas=c.related_formulas,",
-        "    )",
-        "    if c.uncertainty is not None:",
-        "        m.uncertainty = c.uncertainty",
-        "    return m",
-        "",
-        "",
-        "def catalog_msg():",
-        '    """Every constant, as a formularium-types Catalog (domains left empty)."""',
-        f"    from {TYPES_BINDINGS} import Catalog",
-        "",
-        "    m = Catalog()",
-        "    for symbol in CONSTANTS:",
-        "        m.constants.append(constant_msg(symbol))",
-        "    return m",
-        "",
-    ]
+    lines.append("")
     return "\n".join(lines)
 
 
@@ -330,12 +284,22 @@ def emit_constant_node(c: Constant) -> str:
             "from gen.axiom_context import AxiomContext",
             f"from {TYPES_BINDINGS} import ConstantSpec",
             "from gen.messages_pb2 import Empty",
-            "from nodes.specs import constant_msg",
+            "from nodes.specs import CONSTANTS",
+            "",
+            f"SPEC = CONSTANTS[{_pystr(c.symbol)}]",
             "",
             "",
             f"def {fn}(ax: AxiomContext, input: Empty) -> ConstantSpec:",
             f'    """{doc}"""',
-            f"    return constant_msg({_pystr(c.symbol)})",
+            "    m = ConstantSpec(",
+            "        symbol=SPEC.symbol, name=SPEC.name, value=SPEC.value, unit=SPEC.unit,",
+            "        mass_dim=SPEC.mass_dim, tier=SPEC.tier, source=SPEC.source,",
+            "        aliases=SPEC.aliases, notes=SPEC.notes,",
+            "        related_formulas=SPEC.related_formulas,",
+            "    )",
+            "    if SPEC.uncertainty is not None:",
+            "        m.uncertainty = SPEC.uncertainty",
+            "    return m",
             "",
         ]
     )
@@ -347,7 +311,7 @@ def emit_domain_get_catalog(domain: str) -> str:
             "from gen.axiom_context import AxiomContext",
             f"from {TYPES_BINDINGS} import DomainCatalog",
             "from gen.messages_pb2 import Empty",
-            "from nodes.specs import domain_catalog_msg",
+            "from nodes.specs import DOMAIN, FORMULAS, QUANTITIES",
             "",
             "",
             "def get_catalog(ax: AxiomContext, input: Empty) -> DomainCatalog:",
@@ -355,7 +319,18 @@ def emit_domain_get_catalog(domain: str) -> str:
                 f'    """The Formularium {domain} domain catalog: every formula spec '
                 'and the quantities they reference."""'
             ),
-            "    return domain_catalog_msg()",
+            "    m = DomainCatalog(domain=DOMAIN)",
+            "    for f in FORMULAS.values():",
+            "        m.formulas.add(",
+            "            id=f.id, name=f.name, expression=f.expression, symbols=f.symbols,",
+            "            input_symbols=f.input_symbols, computes=f.computes, tier=f.tier,",
+            "            provenance=f.provenance, refs=f.refs, notes=f.notes,",
+            "            dimensional_check=f.dimensional_check, domain=f.domain,",
+            "        )",
+            "    for q in QUANTITIES.values():",
+            "        m.quantities.add(symbol=q.symbol, name=q.name, mass_dim=q.mass_dim,",
+            "                         kind=q.kind, notes=q.notes)",
+            "    return m",
             "",
         ]
     )
@@ -367,7 +342,7 @@ def emit_constants_get_catalog() -> str:
             "from gen.axiom_context import AxiomContext",
             f"from {TYPES_BINDINGS} import Catalog",
             "from gen.messages_pb2 import Empty",
-            "from nodes.specs import catalog_msg",
+            "from nodes.specs import CONSTANTS",
             "",
             "",
             "def get_catalog(ax: AxiomContext, input: Empty) -> Catalog:",
@@ -375,7 +350,17 @@ def emit_constants_get_catalog() -> str:
                 '    """Every Formularium constant spec, as a Catalog (domain slices '
                 'left to the domain packages)."""'
             ),
-            "    return catalog_msg()",
+            "    m = Catalog()",
+            "    for c in CONSTANTS.values():",
+            "        entry = m.constants.add(",
+            "            symbol=c.symbol, name=c.name, value=c.value, unit=c.unit,",
+            "            mass_dim=c.mass_dim, tier=c.tier, source=c.source,",
+            "            aliases=c.aliases, notes=c.notes,",
+            "            related_formulas=c.related_formulas,",
+            "        )",
+            "        if c.uncertainty is not None:",
+            "            entry.uncertainty = c.uncertainty",
+            "    return m",
             "",
         ]
     )

@@ -35,7 +35,8 @@ def _run(cmd: list[str], cwd: Path, check: bool = True) -> subprocess.CompletedP
 
 
 def _existing(out_root: Path, names: list[str] | None = None) -> list[Path]:
-    return [out_root / p for p in (names or ALL_PACKAGES) if (out_root / p / "axiom.yaml").exists()]
+    wanted = ALL_PACKAGES if names is None else names
+    return [out_root / p for p in wanted if (out_root / p / "axiom.yaml").exists()]
 
 
 def repo_sync(out_root: Path, only: str | None = None) -> int:
