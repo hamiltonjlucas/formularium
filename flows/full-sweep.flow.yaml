@@ -1,6 +1,3 @@
-# The catalog-assemble subflow id below is minted by:
-#   axiom flow compile flows/catalog-assemble.flow.yaml
-# Re-fill SUBFLOW_ARTIFACT_ID after any recompile of the assembly flow.
 name: hamiltonjlucas/formularium-full-sweep
 version: 0.2.0
 description: >-
@@ -8,7 +5,8 @@ description: >-
   parallel — validation, natural-units dimensional analysis, unit-annotation checks,
   the relationship graph, structural bridge analysis, curated symbolic derivations,
   orphan-constant relation discovery, and Buckingham-pi group enumeration — and merge
-  the results into a single SweepReport with a rendered summary.
+  the results into a single SweepReport with a rendered summary. The catalog assembly
+  (fan-out to all 9 package GetCatalog nodes) is inlined at the head of the flow.
 
 input_facade:
   message_name: SweepRequest
@@ -20,10 +18,20 @@ input_facade:
       description: Optional free-form label for this sweep run; not used by any node.
 
 nodes:
-  - alias: catalog
-    subflow: SUBFLOW_ARTIFACT_ID
-    input: AssembleRequest
-    output: Catalog
+  - { alias: constants, package: hamiltonjlucas/formularium-constants@0.2.0, node: GetCatalog }
+  - { alias: electroweak, package: hamiltonjlucas/formularium-electroweak@0.2.0, node: GetCatalog }
+  - { alias: flavor, package: hamiltonjlucas/formularium-flavor@0.2.0, node: GetCatalog }
+  - { alias: bz_cascade, package: hamiltonjlucas/formularium-bz-cascade@0.2.0, node: GetCatalog }
+  - { alias: atomic, package: hamiltonjlucas/formularium-atomic@0.2.0, node: GetCatalog }
+  - { alias: em_si, package: hamiltonjlucas/formularium-em-si@0.2.0, node: GetCatalog }
+  - { alias: gravity_thermo, package: hamiltonjlucas/formularium-gravity-thermo@0.2.0, node: GetCatalog }
+  - { alias: cosmology, package: hamiltonjlucas/formularium-cosmology@0.2.0, node: GetCatalog }
+  - { alias: quantum_info, package: hamiltonjlucas/formularium-quantum-info@0.2.0, node: GetCatalog }
+  - alias: assemble
+    package: hamiltonjlucas/formularium-engine@0.1.0
+    node: AssembleCatalog
+    config:
+      join: { kind: AND }
   - { alias: validate, package: hamiltonjlucas/formularium-engine@0.1.0, node: ValidateCatalog }
   - { alias: dims, package: hamiltonjlucas/formularium-engine@0.1.0, node: CheckDimensions }
   - { alias: units, package: hamiltonjlucas/formularium-engine@0.1.0, node: CheckUnits }
@@ -37,32 +45,39 @@ nodes:
     node: AssembleSweepReport
     config:
       join: { kind: AND }
-      compose:
-        compose_plan:
-          validation: { src_edge: validate }
-          dimensions: { src_edge: dims }
-          units: { src_edge: units }
-          graph: { src_edge: graph }
-          structure: { src_edge: structure }
-          derive: { src_edge: derive }
-          discover: { src_edge: discover }
-          buckingham: { src_edge: buckingham }
 
 edges:
-  - { from: "@flow_input", to: catalog }
-  - { from: catalog, to: validate }
-  - { from: catalog, to: dims }
-  - { from: catalog, to: units }
-  - { from: catalog, to: graph }
-  - { from: catalog, to: structure }
-  - { from: catalog, to: derive }
-  - { from: catalog, to: discover }
-  - { from: catalog, to: buckingham }
-  - { from: validate, to: report }
-  - { from: dims, to: report }
-  - { from: units, to: report }
-  - { from: graph, to: report }
-  - { from: structure, to: report }
-  - { from: derive, to: report }
-  - { from: discover, to: report }
-  - { from: buckingham, to: report }
+  - { from: "@flow_input", to: constants }
+  - { from: "@flow_input", to: electroweak }
+  - { from: "@flow_input", to: flavor }
+  - { from: "@flow_input", to: bz_cascade }
+  - { from: "@flow_input", to: atomic }
+  - { from: "@flow_input", to: em_si }
+  - { from: "@flow_input", to: gravity_thermo }
+  - { from: "@flow_input", to: cosmology }
+  - { from: "@flow_input", to: quantum_info }
+  - { from: constants, to: assemble, adapter: { constants_json: "toJson(value)" } }
+  - { from: electroweak, to: assemble, adapter: { electroweak_json: "toJson(value)" } }
+  - { from: flavor, to: assemble, adapter: { flavor_json: "toJson(value)" } }
+  - { from: bz_cascade, to: assemble, adapter: { bz_cascade_json: "toJson(value)" } }
+  - { from: atomic, to: assemble, adapter: { atomic_json: "toJson(value)" } }
+  - { from: em_si, to: assemble, adapter: { em_si_json: "toJson(value)" } }
+  - { from: gravity_thermo, to: assemble, adapter: { gravity_thermo_json: "toJson(value)" } }
+  - { from: cosmology, to: assemble, adapter: { cosmology_json: "toJson(value)" } }
+  - { from: quantum_info, to: assemble, adapter: { quantum_info_json: "toJson(value)" } }
+  - { from: assemble, to: validate }
+  - { from: assemble, to: dims }
+  - { from: assemble, to: units }
+  - { from: assemble, to: graph }
+  - { from: assemble, to: structure }
+  - { from: assemble, to: derive }
+  - { from: assemble, to: discover }
+  - { from: assemble, to: buckingham }
+  - { from: validate, to: report, adapter: { validation: "value" } }
+  - { from: dims, to: report, adapter: { dimensions: "value" } }
+  - { from: units, to: report, adapter: { units: "value" } }
+  - { from: graph, to: report, adapter: { graph: "value" } }
+  - { from: structure, to: report, adapter: { structure: "value" } }
+  - { from: derive, to: report, adapter: { derive: "value" } }
+  - { from: discover, to: report, adapter: { discover: "value" } }
+  - { from: buckingham, to: report, adapter: { buckingham: "value" } }

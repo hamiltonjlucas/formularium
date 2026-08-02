@@ -30,17 +30,6 @@ nodes:
     node: AssembleCatalog
     config:
       join: { kind: AND }
-      compose:
-        compose_plan:
-          constants: { src_edge: constants }
-          electroweak: { src_edge: electroweak }
-          flavor: { src_edge: flavor }
-          bz_cascade: { src_edge: bz_cascade }
-          atomic: { src_edge: atomic }
-          em_si: { src_edge: em_si }
-          gravity_thermo: { src_edge: gravity_thermo }
-          cosmology: { src_edge: cosmology }
-          quantum_info: { src_edge: quantum_info }
 
 edges:
   - { from: "@flow_input", to: constants }
@@ -52,12 +41,14 @@ edges:
   - { from: "@flow_input", to: gravity_thermo }
   - { from: "@flow_input", to: cosmology }
   - { from: "@flow_input", to: quantum_info }
-  - { from: constants, to: assemble }
-  - { from: electroweak, to: assemble }
-  - { from: flavor, to: assemble }
-  - { from: bz_cascade, to: assemble }
-  - { from: atomic, to: assemble }
-  - { from: em_si, to: assemble }
-  - { from: gravity_thermo, to: assemble }
-  - { from: cosmology, to: assemble }
-  - { from: quantum_info, to: assemble }
+  # per-edge adapters: each source fills its own JSON-slice field; the AND join
+  # merges field-wise (the engine's AssembleCatalog parses and merges the slices)
+  - { from: constants, to: assemble, adapter: { constants_json: "toJson(value)" } }
+  - { from: electroweak, to: assemble, adapter: { electroweak_json: "toJson(value)" } }
+  - { from: flavor, to: assemble, adapter: { flavor_json: "toJson(value)" } }
+  - { from: bz_cascade, to: assemble, adapter: { bz_cascade_json: "toJson(value)" } }
+  - { from: atomic, to: assemble, adapter: { atomic_json: "toJson(value)" } }
+  - { from: em_si, to: assemble, adapter: { em_si_json: "toJson(value)" } }
+  - { from: gravity_thermo, to: assemble, adapter: { gravity_thermo_json: "toJson(value)" } }
+  - { from: cosmology, to: assemble, adapter: { cosmology_json: "toJson(value)" } }
+  - { from: quantum_info, to: assemble, adapter: { quantum_info_json: "toJson(value)" } }
