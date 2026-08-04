@@ -25,7 +25,7 @@ Everything below is **published on the Axiom marketplace** under Apache-2.0.
 | `hamiltonjlucas/formularium-gravity-thermo` | 0.3.0 | 16 formula nodes (Planck units, Bekenstein–Hawking, Unruh, capacity) |
 | `hamiltonjlucas/formularium-cosmology` | 0.3.0 | 16 formula nodes (FRW, dark energy, holography, Casimir seesaw) |
 | `hamiltonjlucas/formularium-quantum-info` | 0.3.0 | 6 formula nodes (Tsirelson bounds, weak values, gravitational impulse) |
-| `hamiltonjlucas/formularium-engine` | 0.3.0 | 11 discovery/analysis nodes over the assembled `Catalog` |
+| `hamiltonjlucas/formularium-engine` | 0.3.1 | 11 discovery/analysis nodes over the assembled `Catalog` |
 
 The dependency graph is a single fan-out: `formularium-types` at the root, all ten
 node packages importing it and nothing else — constants is an ordinary leaf like the
