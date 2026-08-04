@@ -2,7 +2,8 @@
 
 For each target package (formularium-constants + the 8 domain packages):
   1. `axiom init` if the directory doesn't exist yet.
-  2. `axiom import hamiltonjlucas/formularium-types` if not yet imported.
+  2. `axiom import hamiltonjlucas/formularium-types` if not yet imported (the
+     proto-only types package is hand-maintained and must already be pushed).
   3. Overwrite messages/messages.proto, nodes/*.py, nodes/specs.py, tests, README, LICENSE.
   4. Rewrite the manifest's nodes/description/license (preserving imports).
   5. `axiom generate` + `axiom validate --json`.
@@ -25,7 +26,7 @@ from .catalog import Constant, load_constants, load_quantities
 from .domains import DOMAINS, package_name
 from .emit import (
     SCOPE,
-    SHARED_PKG,
+    TYPES_PKG,
     constant_node_name,
     emit_constant_node,
     emit_constant_test,
@@ -46,7 +47,10 @@ from .emit import (
 from .natvals import fixture_values, natural_units_values
 from .printer import evaluate_sympy
 
-SHARED_VERSION = "0.2.0"
+# The version of formularium-types the generated packages import. The types package
+# is hand-maintained (its own repo is the vocabulary's source of truth) and must be
+# `axiom push`ed before migrate can regenerate its consumers.
+TYPES_VERSION = "0.3.0"
 
 
 def _run(cmd: list[str], cwd: Path, check: bool = True) -> subprocess.CompletedProcess:
@@ -68,12 +72,13 @@ def _ensure_package(out_root: Path, pkg: str, report: list[str]) -> Path:
     return pkg_dir
 
 
-def _strip_stale_types_import(pkg_dir: Path, report: list[str]) -> None:
-    """Remove any leftover import of the retired formularium-types package."""
+def _strip_stale_constants_import(pkg_dir: Path, report: list[str]) -> None:
+    """Remove the cap-era import of formularium-constants (which carried the shared
+    vocabulary while formularium-types was retired)."""
     manifest_path = pkg_dir / "axiom.yaml"
     manifest = yaml.safe_load(manifest_path.read_text())
     imports = manifest.get("imports") or []
-    kept = [i for i in imports if i.get("package") != "hamiltonjlucas/formularium-types"]
+    kept = [i for i in imports if i.get("package") != "hamiltonjlucas/formularium-constants"]
     if len(kept) != len(imports):
         if kept:
             manifest["imports"] = kept
@@ -82,26 +87,28 @@ def _strip_stale_types_import(pkg_dir: Path, report: list[str]) -> None:
         manifest_path.write_text(
             yaml.dump(manifest, default_flow_style=False, sort_keys=False, width=100)
         )
-        shutil.rmtree(pkg_dir / "imports" / "hamiltonjlucas-formularium-types",
-                      ignore_errors=True)
-        stale = pkg_dir / "gen" / "hamiltonjlucas_formularium_types_messages_pb2.py"
+        shutil.rmtree(
+            pkg_dir / "imports" / "hamiltonjlucas-formularium-constants", ignore_errors=True
+        )
+        stale = pkg_dir / "gen" / "hamiltonjlucas_formularium_constants_messages_pb2.py"
         stale.unlink(missing_ok=True)
-        report.append(f"{pkg_dir.name}: stripped stale formularium-types import")
+        report.append(f"{pkg_dir.name}: stripped stale formularium-constants import")
 
 
-def _ensure_shared_import(pkg_dir: Path, report: list[str]) -> None:
-    """Domain/engine packages import the shared vocabulary from formularium-constants."""
-    _strip_stale_types_import(pkg_dir, report)
+def _ensure_types_import(pkg_dir: Path, report: list[str]) -> None:
+    """Every package imports the shared vocabulary from formularium-types."""
+    _strip_stale_constants_import(pkg_dir, report)
     manifest = yaml.safe_load((pkg_dir / "axiom.yaml").read_text())
     imports = manifest.get("imports") or []
-    if not any(i.get("package") == SHARED_PKG for i in imports):
-        out = _run(["axiom", "import", f"{SHARED_PKG}@{SHARED_VERSION}"], cwd=pkg_dir,
-                   check=False)
+    if not any(i.get("package") == TYPES_PKG for i in imports):
+        out = _run(["axiom", "import", f"{TYPES_PKG}@{TYPES_VERSION}"], cwd=pkg_dir, check=False)
         if out.returncode != 0:
-            report.append(f"{pkg_dir.name}: axiom import {SHARED_PKG} FAILED: "
-                          f"{(out.stdout + out.stderr).strip()[:200]}")
+            report.append(
+                f"{pkg_dir.name}: axiom import {TYPES_PKG} FAILED: "
+                f"{(out.stdout + out.stderr).strip()[:200]}"
+            )
         else:
-            report.append(f"{pkg_dir.name}: imported {SHARED_PKG}@{SHARED_VERSION}")
+            report.append(f"{pkg_dir.name}: imported {TYPES_PKG}@{TYPES_VERSION}")
 
 
 def _write_manifest(pkg_dir: Path, description: str, nodes: list[dict]) -> None:
@@ -147,10 +154,12 @@ def _generate_constants_package(
 ) -> bool:
     pkg = "formularium-constants"
     pkg_dir = _ensure_package(out_root, pkg, report)
-    _strip_stale_types_import(pkg_dir, report)  # carries the shared vocabulary itself
     _clean_generated_nodes(pkg_dir)
 
+    # write the (message-less) proto BEFORE importing: the previous generation's local
+    # vocabulary would otherwise collide with the same messages arriving from types
     (pkg_dir / "messages" / "messages.proto").write_text(emit_constants_proto(pkg))
+    _ensure_types_import(pkg_dir, report)
     (pkg_dir / "nodes" / "specs.py").write_text(emit_constants_specs(constants))
     nodes: list[dict] = []
     for c in constants:
@@ -214,7 +223,7 @@ def _generate_domain_package(
     # write the (Empty-free) proto BEFORE importing, or the importer reports a
     # collision with the previous generation's local Empty
     (pkg_dir / "messages" / "messages.proto").write_text(emit_domain_proto(pkg, analyses))
-    _ensure_shared_import(pkg_dir, report)
+    _ensure_types_import(pkg_dir, report)
     (pkg_dir / "nodes" / "specs.py").write_text(emit_domain_specs(domain, analyses, dom_quants))
 
     from .emit import emit_formula_node, emit_formula_test
