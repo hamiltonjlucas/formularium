@@ -107,6 +107,18 @@ from is retired — do not edit unified-theory expecting Formularium to change.
 Full procedures: [`docs/catalog-maintenance.md`](docs/catalog-maintenance.md) ·
 [`docs/operations.md`](docs/operations.md).
 
+### Verifying the fleet live
+
+[`tools/closure_sweep.py`](tools/closure_sweep.py) (stdlib-only, resumable) invokes
+every published node — 71 constants, 102 formulas, 9 catalogs — replaying each
+formula's generated-test inputs against the live platform and checking physics
+closure against the measured constants. Run it after any push, and after platform
+upgrades: `python3 tools/closure_sweep.py` (results in `./closure_results.json`;
+re-runs skip prior passes, so a throttled sweep resumes). First full pass:
+2026-08-03, 182/182. [`flows/bh-entropy.flow.yaml`](flows/bh-entropy.flow.yaml) is
+a verified worked example of composing the catalog into a multi-package calculation
+(deliberately unpublished).
+
 ## The `formularium` CLI (this repo)
 
 ```

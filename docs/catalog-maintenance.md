@@ -67,4 +67,6 @@ formularium check-specs <changed-pkg-dir>      # specs <-> body consistency
 curl -s https://api.axiomide.com/api/flows/hamiltonjlucas/formularium-full-sweep  # graph id
 axiom flow run <graph_id> -d '{}' --json       # validation.passed, 0 dimension
                                                # inconsistencies, 0 unit mismatches
+# per-node live verification (all 182 nodes, resumable; see README "Verifying the fleet live")
+python3 tools/closure_sweep.py                 # bump VER in the script when versions move
 ```

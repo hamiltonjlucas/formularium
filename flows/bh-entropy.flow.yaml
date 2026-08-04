@@ -1,0 +1,159 @@
+# Worked example (deliberately UNPUBLISHED): black-hole horizon thermodynamics from
+# live catalog constants. Verified 2026-08-03 against local computation (1 M_sun ->
+# S_BH = 1.0494e77 nats; both entropy routes agree to the last digit). Compile+run:
+#   axiom flow compile flows/bh-entropy.flow.yaml && axiom flow run <artifact> -d '{"m_bh_kg": 1.98892e30}'
+name: hamiltonjlucas/formularium-bh-entropy
+version: 0.1.0
+description: 'Black-hole mass (kg) -> horizon thermodynamics: fetches G_N, hbar, and c live from the Formularium constants catalog, derives the Planck length, the Schwarzschild horizon area, and the dyadic area quantum, then returns the Bekenstein-Hawking horizon entropy in nats alongside the conjectural dyadic-thread entropy in bits.'
+nodes:
+    - alias: gn
+      package: hamiltonjlucas/formularium-constants@0.2.0
+      node: GetGN
+      col: 0
+      row: 1
+    - alias: hb
+      package: hamiltonjlucas/formularium-constants@0.2.0
+      node: GetHbar
+      col: 0
+      row: 2
+    - alias: cc
+      package: hamiltonjlucas/formularium-constants@0.2.0
+      node: GetC
+      col: 0
+      row: 0
+    - alias: lp
+      package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+      node: PlanckLength
+      col: 1
+      row: 1
+      config:
+        join:
+            kind: AND
+    - alias: aq
+      package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+      node: AreaQuantum
+      col: 2
+      row: 1
+    - alias: area
+      package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+      node: SchwarzschildArea
+      col: 1
+      row: 0
+      config:
+        join:
+            kind: AND
+    - alias: bek
+      package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+      node: BekensteinHawking
+      col: 2
+      row: 0
+      config:
+        join:
+            kind: AND
+    - alias: bits
+      package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+      node: SbhBits
+      col: 3
+      row: 0
+      config:
+        join:
+            kind: AND
+edges:
+    - from: '@flow_input'
+      to: gn
+    - from: '@flow_input'
+      to: hb
+    - from: '@flow_input'
+      to: cc
+    - from: gn
+      to: lp
+      adapter:
+        G_N: value
+    - from: hb
+      to: lp
+      adapter:
+        hbar: value
+    - from: cc
+      to: lp
+      adapter:
+        c: value
+    - from: lp
+      to: aq
+      adapter:
+        l_P: value
+    - from: gn
+      to: area
+      adapter:
+        G_N: value
+    - from: cc
+      to: area
+      adapter:
+        c: value
+    - from: '@flow_input'
+      to: area
+      adapter:
+        M_bh: m_bh_kg
+    - from: area
+      to: bek
+      adapter:
+        A_hor: value
+    - from: lp
+      to: bek
+      adapter:
+        l_P: value
+    - from: area
+      to: bits
+      adapter:
+        A_hor: value
+    - from: aq
+      to: bits
+      adapter:
+        Delta_A_bit: value
+    - from: lp
+      to: '@flow_output'
+    - from: area
+      to: '@flow_output'
+    - from: bek
+      to: '@flow_output'
+    - from: bits
+      to: '@flow_output'
+input_facade:
+    message_name: BhEntropyRequest
+    description: A black hole specified by its mass, in SI units.
+    fields:
+        m_bh_kg:
+            kind: double
+            description: Black-hole mass in kilograms (1 solar mass ~ 1.98892e30 kg).
+output_facade:
+    message_name: BhEntropyReport
+    description: Horizon geometry and entropy of the requested black hole, in SI units.
+    fields:
+        area_m2:
+            kind: double
+            description: Schwarzschild horizon area A_hor = 16 pi G_N^2 M^2 / c^4, in m^2.
+        entropy_dyadic:
+            kind: double
+            description: The same S_BH in nats, computed via the dyadic area-quantum route A_hor ln2 / Delta_A_bit (conjecture tier); agreement with entropy_nats is a consistency check of the two chains.
+        entropy_nats:
+            kind: double
+            description: Bekenstein-Hawking horizon entropy S_BH = A_hor/(4 l_P^2), in nats (established).
+        planck_length_m:
+            kind: double
+            description: Planck length sqrt(hbar G_N / c^3) in meters, derived from live catalog constants.
+    config:
+        join:
+            kind: AND
+        compose:
+            compose_plan:
+                area_m2:
+                    src_edge: area
+                    src_path: value
+                entropy_dyadic:
+                    src_edge: bits
+                    src_path: value
+                entropy_nats:
+                    src_edge: bek
+                    src_path: value
+                planck_length_m:
+                    src_edge: lp
+                    src_path: value
