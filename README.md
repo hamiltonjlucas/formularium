@@ -15,16 +15,23 @@ Everything below is **published on the Axiom marketplace** under Apache-2.0.
 
 | Package | Version | Contents |
 |---|---|---|
-| `hamiltonjlucas/formularium-constants` | 0.2.0 | 71 `Get<Symbol>` constant nodes + `GetCatalog`, **plus the shared protobuf vocabulary** (`ConstantSpec`, `FormulaSpec`, `Catalog`, `FormulaResult`, engine report messages) that every other package imports |
-| `hamiltonjlucas/formularium-electroweak` | 0.2.0 | 11 formula nodes (W/Z masses, Higgs VEV & quartic, gauge couplings, Yukawa structure) |
-| `hamiltonjlucas/formularium-flavor` | 0.2.0 | 17 formula nodes (Koide, Gatto, CKM, mass ratios, Yukawa values) |
-| `hamiltonjlucas/formularium-bz-cascade` | 0.2.0 | 11 formula nodes (BZ-scale cascade conjectures) |
-| `hamiltonjlucas/formularium-atomic` | 0.2.0 | 15 formula nodes (Bohr, Rydberg, Compton, Thomson, Schwinger) |
-| `hamiltonjlucas/formularium-em-si` | 0.2.0 | 10 formula nodes (SI electromagnetism & thermodynamics) |
-| `hamiltonjlucas/formularium-gravity-thermo` | 0.2.0 | 16 formula nodes (Planck units, Bekenstein–Hawking, Unruh, capacity) |
-| `hamiltonjlucas/formularium-cosmology` | 0.2.0 | 16 formula nodes (FRW, dark energy, holography, Casimir seesaw) |
-| `hamiltonjlucas/formularium-quantum-info` | 0.2.0 | 6 formula nodes (Tsirelson bounds, weak values, gravitational impulse) |
-| `hamiltonjlucas/formularium-engine` | 0.1.0 | 11 discovery/analysis nodes over the assembled `Catalog` |
+| `hamiltonjlucas/formularium-types` | 0.3.0 | **The shared protobuf vocabulary**, proto-only (`Empty`, `ConstantSpec`, `QuantitySpec`, `FormulaSpec`, `FormulaResult`, `Catalog`/`DomainCatalog`, engine report messages) — every other package imports it |
+| `hamiltonjlucas/formularium-constants` | 0.3.0 | 71 `Get<Symbol>` constant nodes + `GetCatalog` |
+| `hamiltonjlucas/formularium-electroweak` | 0.3.0 | 11 formula nodes (W/Z masses, Higgs VEV & quartic, gauge couplings, Yukawa structure) |
+| `hamiltonjlucas/formularium-flavor` | 0.3.0 | 17 formula nodes (Koide, Gatto, CKM, mass ratios, Yukawa values) |
+| `hamiltonjlucas/formularium-bz-cascade` | 0.3.0 | 11 formula nodes (BZ-scale cascade conjectures) |
+| `hamiltonjlucas/formularium-atomic` | 0.3.0 | 15 formula nodes (Bohr, Rydberg, Compton, Thomson, Schwinger) |
+| `hamiltonjlucas/formularium-em-si` | 0.3.0 | 10 formula nodes (SI electromagnetism & thermodynamics) |
+| `hamiltonjlucas/formularium-gravity-thermo` | 0.3.0 | 16 formula nodes (Planck units, Bekenstein–Hawking, Unruh, capacity) |
+| `hamiltonjlucas/formularium-cosmology` | 0.3.0 | 16 formula nodes (FRW, dark energy, holography, Casimir seesaw) |
+| `hamiltonjlucas/formularium-quantum-info` | 0.3.0 | 6 formula nodes (Tsirelson bounds, weak values, gravitational impulse) |
+| `hamiltonjlucas/formularium-engine` | 0.3.0 | 11 discovery/analysis nodes over the assembled `Catalog` |
+
+The dependency graph is a single fan-out: `formularium-types` at the root, all ten
+node packages importing it and nothing else — constants is an ordinary leaf like the
+domains. (During the platform's since-lifted 10-package beta cap, 2026-08-01→03, the
+vocabulary was temporarily merged into `formularium-constants`; versions ≤0.2.0 have
+that shape.)
 
 **Published flows**: `hamiltonjlucas/formularium-catalog-assemble` (fan out to all 9
 `GetCatalog` nodes → one `Catalog`), `hamiltonjlucas/formularium-full-sweep` (catalog →
@@ -74,11 +81,11 @@ field named `value` shadows CEL's whole-message binding.
 ```yaml
 # G_N, hbar, c -> Planck length, as a flow fragment (SI values, fetched live; verified)
 nodes:
-  - { alias: gn, package: hamiltonjlucas/formularium-constants@0.2.0, node: GetGN }
-  - { alias: hb, package: hamiltonjlucas/formularium-constants@0.2.0, node: GetHbar }
-  - { alias: cc, package: hamiltonjlucas/formularium-constants@0.2.0, node: GetC }
+  - { alias: gn, package: hamiltonjlucas/formularium-constants@0.3.0, node: GetGN }
+  - { alias: hb, package: hamiltonjlucas/formularium-constants@0.3.0, node: GetHbar }
+  - { alias: cc, package: hamiltonjlucas/formularium-constants@0.3.0, node: GetC }
   - alias: lp
-    package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+    package: hamiltonjlucas/formularium-gravity-thermo@0.3.0
     node: PlanckLength
     config: { join: { kind: AND } }
 edges:
