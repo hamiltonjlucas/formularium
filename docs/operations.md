@@ -1,28 +1,16 @@
-# Operations: slots, pushes, publishes
+# Operations: pushes, publishes, removals
 
-The platform enforces an undocumented **10-packages-per-account beta cap**, and the
-Formularium fleet occupies **all 10 slots**. This shapes every operation below. (Filed as
-platform feedback 01KYZPWZ7RS3HZM5DFZMF0TJV3 + correction 01KZ1RSATP8HWG7KPKWDV730HY;
-empirical details in the axiom repo's `wiki/patterns.md`, "Empirically discovered
-platform behavior".)
+**The 10-packages-per-account beta cap was lifted on 2026-08-03** — new packages push
+freely and version-replacing pushes no longer need slot headroom. (The cap was
+undocumented, discovered 2026-08-01 when the fleet filled all 10 slots; filed as
+platform feedback 01KYZPWZ7RS3HZM5DFZMF0TJV3 + correction 01KZ1RSATP8HWG7KPKWDV730HY.
+Cap-era mechanics are kept for the record in the axiom repo's `wiki/patterns.md`,
+"Empirically discovered platform behavior".)
 
-## The cap counts version rows, transiently
-
-A version-replacing `axiom push` needs the old and new version rows to **coexist** until
-the old one is torn down asynchronously (takes minutes). At 10/10, even a re-push of an
-*existing* package can be rejected with `beta limit reached`. Consequences:
-
-- **Sequence version-replacing pushes**; after each, poll until the superseded row is
-  purged before the next push: `axiom info <pkg>@<oldver> --json` → wait for 404.
-  (`formularium push --all` orders pushes but does not yet wait — pace it manually or
-  use the pattern in the session scratch script `push-remaining.sh`.)
-- **⚠ OPEN HAZARD — updating at 10/10 with everything published.** A version bump's push
-  needs a transient 11th row and may be refused outright; freeing a slot by retiring a
-  *published* package itself requires a push (see the dance below) — which is equally
-  cap-blocked. If a version-replacing push is refused at steady-state 10/10, the ways
-  out are: (a) ask the platform to raise the cap (limits are operator-adjustable), or
-  (b) retire a package whose latest version is still *pushed-only* (direct removal, no
-  dance). Test with one small package bump before batching a fleet-wide change.
+One cap-era observation is still real, just no longer a blocker: a version-replacing
+`axiom push` keeps the old and new version rows **coexisting** until the old one is torn
+down asynchronously (takes minutes). Poll `axiom info <pkg>@<oldver> --json` → 404 if
+you need to confirm the teardown.
 
 ## Removing packages / versions
 
@@ -32,8 +20,7 @@ the old one is torn down asynchronously (takes minutes). At 10/10, even a re-pus
   packages): bump version → `axiom push` the throwaway (tenant-private; `--allow-dirty`
   builds the last commit if the working tree is dirty, but local validate still reads the
   working tree — stash tracked WIP first) → `remove version <pkg>@<old> --force` (no
-  longer latest) → `remove version <pkg>@<throwaway> --force` (pushed-only). Needs one
-  slot of transient headroom for the throwaway push.
+  longer latest) → `remove version <pkg>@<throwaway> --force` (pushed-only).
 - Superseded (non-latest) published versions are removable directly — do this after each
   successful publish to keep row count at one per package.
 
@@ -44,7 +31,7 @@ the old one is torn down asynchronously (takes minutes). At 10/10, even a re-pus
 cd ~/code/axiom/src/formularium/formularium
 uv run formularium push --all --only <pkg>     # commits+pushes git, then axiom push
 # platform builds from the git REMOTE at HEAD and re-runs the package's tests;
-# a red test fails the push. Wait for old-row GC before the next package.
+# a red test fails the push.
 uv run formularium publish --all --yes         # dependency order: constants -> domains -> engine
 ```
 

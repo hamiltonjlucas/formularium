@@ -101,8 +101,9 @@ from is retired — do not edit unified-theory expecting Formularium to change.
   `formularium check-specs` (installed as a pre-commit hook by `formularium repo sync`)
   blocks commits where body and spec drifted. If the RHS symbols changed, re-run the
   generator for that package instead (message shapes + tests must follow).
-- **Read `docs/operations.md` before any push/publish** — the platform's 10-package
-  beta cap has sharp operational consequences (the fleet fills all 10 slots).
+- **Read `docs/operations.md` before any push/publish** — pacing, dependency order,
+  and version-removal mechanics. (The platform's 10-package beta cap, which the fleet
+  filled exactly, was lifted 2026-08-03.)
 
 Full procedures: [`docs/catalog-maintenance.md`](docs/catalog-maintenance.md) ·
 [`docs/operations.md`](docs/operations.md).

@@ -20,8 +20,8 @@ YAML catalog (unified-theory) is retired — editing it changes nothing here.
 
 Then: bump `version:` in `axiom.yaml` (published versions are immutable, and a deployed
 node's wire contract is frozen per version — ADR-146), commit + git push, `axiom push`,
-and `axiom publish` when ready. **Read `operations.md` first** — pushes at the beta cap
-have a sharp edge.
+and `axiom publish` when ready. **Read `operations.md` first** for pacing and
+version-removal mechanics (the 10-package beta cap was lifted 2026-08-03).
 
 ## Add a formula
 
@@ -50,8 +50,8 @@ picks it up automatically (it iterates `CONSTANTS`).
 
 ## Add a whole domain package
 
-**Blocked by default**: the account is at the 10-package beta cap (see
-`operations.md`). If a slot exists: add the domain to `src/formularium/domains.py`
+**No longer slot-blocked** (the 10-package beta cap was lifted 2026-08-03; see
+`operations.md`): add the domain to `src/formularium/domains.py`
 (partition table + `DOMAINS`), put its formulas in the table, run
 `formularium migrate --only <new-domain>`, `formularium repo sync --only <pkg>`, push.
 Update `flows/*.flow.yaml` (new `GetCatalog` alias + edge + a new JSON-slice field on the
