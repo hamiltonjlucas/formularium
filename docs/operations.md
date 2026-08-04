@@ -81,3 +81,17 @@ Platform quirks these flows already route around (do not "simplify" them back):
 2,000 invocations/day, 500 executions/day per tenant (each full-sweep run consumes several
 child executions); 16 MiB payload cap (the assembled catalog is ~110 KB — fine); 30-day
 execution retention (`axiom executions get <id>`).
+
+## Invocation pacing (learned in the 2026-08-03 verification pass)
+
+- **Parallel invoke bursts trip a per-minute 429 throttle** — 8 concurrent
+  `axiom invoke` calls got mass-429'd; 2 workers with exponential backoff sweep the
+  whole fleet clean (`tools/closure_sweep.py` does exactly this).
+- **Scaled-to-zero nodes 502/timeout** (`context deadline exceeded`) at the default
+  30s on first touch, especially when many packages cold-start at once. Warm with one
+  invoke or retry once; `--timeout 60` gives cold starts room.
+- **A cold first `axiom flow run` can falsely report failure** (exit 1,
+  `"flow execution failed"`, no output) while the execution record shows
+  FLOW_COMPLETED with every node's output present. **The execution record is the
+  oracle** (`axiom executions get <id>`); an immediate re-run succeeds. Filed as
+  platform feedback 01KZ5JZZVR2NHMD37GQRH7DKDJ.
