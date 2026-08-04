@@ -12,7 +12,7 @@ pipeline_mode: true
 
 nodes:
   - alias: synthesize
-    package: hamiltonjlucas/formularium-engine@0.3.0
+    package: hamiltonjlucas/formularium-engine@0.3.1
     node: SynthesizeRelations
 
 edges: []

@@ -28,20 +28,20 @@ nodes:
   - { alias: cosmology, package: hamiltonjlucas/formularium-cosmology@0.3.0, node: GetCatalog }
   - { alias: quantum_info, package: hamiltonjlucas/formularium-quantum-info@0.3.0, node: GetCatalog }
   - alias: assemble
-    package: hamiltonjlucas/formularium-engine@0.3.0
+    package: hamiltonjlucas/formularium-engine@0.3.1
     node: AssembleCatalog
     config:
       join: { kind: AND }
-  - { alias: validate, package: hamiltonjlucas/formularium-engine@0.3.0, node: ValidateCatalog }
-  - { alias: dims, package: hamiltonjlucas/formularium-engine@0.3.0, node: CheckDimensions }
-  - { alias: units, package: hamiltonjlucas/formularium-engine@0.3.0, node: CheckUnits }
-  - { alias: graph, package: hamiltonjlucas/formularium-engine@0.3.0, node: BuildGraph }
-  - { alias: structure, package: hamiltonjlucas/formularium-engine@0.3.0, node: AnalyzeStructure }
-  - { alias: derive, package: hamiltonjlucas/formularium-engine@0.3.0, node: DeriveRelations }
-  - { alias: discover, package: hamiltonjlucas/formularium-engine@0.3.0, node: DiscoverRelations }
-  - { alias: buckingham, package: hamiltonjlucas/formularium-engine@0.3.0, node: Buckingham }
+  - { alias: validate, package: hamiltonjlucas/formularium-engine@0.3.1, node: ValidateCatalog }
+  - { alias: dims, package: hamiltonjlucas/formularium-engine@0.3.1, node: CheckDimensions }
+  - { alias: units, package: hamiltonjlucas/formularium-engine@0.3.1, node: CheckUnits }
+  - { alias: graph, package: hamiltonjlucas/formularium-engine@0.3.1, node: BuildGraph }
+  - { alias: structure, package: hamiltonjlucas/formularium-engine@0.3.1, node: AnalyzeStructure }
+  - { alias: derive, package: hamiltonjlucas/formularium-engine@0.3.1, node: DeriveRelations }
+  - { alias: discover, package: hamiltonjlucas/formularium-engine@0.3.1, node: DiscoverRelations }
+  - { alias: buckingham, package: hamiltonjlucas/formularium-engine@0.3.1, node: Buckingham }
   - alias: report
-    package: hamiltonjlucas/formularium-engine@0.3.0
+    package: hamiltonjlucas/formularium-engine@0.3.1
     node: AssembleSweepReport
     config:
       join: { kind: AND }
