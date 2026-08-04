@@ -15,13 +15,12 @@ from pathlib import Path
 from .domains import DOMAINS
 from .emit import SCOPE
 
-# formularium-types was retired (10-package beta cap): the shared vocabulary now
-# lives in formularium-constants, which every other package imports.
+TYPES = "formularium-types"
 CONSTANTS = "formularium-constants"
 ENGINE = "formularium-engine"
 DOMAIN_PKGS = [f"formularium-{d}" for d in DOMAINS]
-ALL_PACKAGES = [CONSTANTS, *DOMAIN_PKGS, ENGINE]
-PUSH_ORDER = [[CONSTANTS], [*DOMAIN_PKGS], [ENGINE]]
+ALL_PACKAGES = [TYPES, CONSTANTS, *DOMAIN_PKGS, ENGINE]
+PUSH_ORDER = [[TYPES], [CONSTANTS, *DOMAIN_PKGS], [ENGINE]]
 
 TOOLING_DIR = Path(__file__).resolve().parents[2]
 

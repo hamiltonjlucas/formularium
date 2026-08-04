@@ -32,13 +32,18 @@ cd ~/code/axiom/src/formularium/formularium
 uv run formularium push --all --only <pkg>     # commits+pushes git, then axiom push
 # platform builds from the git REMOTE at HEAD and re-runs the package's tests;
 # a red test fails the push.
-uv run formularium publish --all --yes         # dependency order: constants -> domains -> engine
+uv run formularium publish --all --yes         # dependency order: types -> constants+domains -> engine
 ```
 
-Dependency order matters: every domain package and the engine `axiom import`
-`formularium-constants` — push constants first when its messages changed, then re-run
-`axiom import hamiltonjlucas/formularium-constants@<ver>` + `axiom generate` in each
-consumer (migrate does this automatically for generated packages).
+Dependency order matters: all ten node packages (constants, the 8 domains, the engine)
+`axiom import` the proto-only `formularium-types` — when the vocabulary changes, push
+types first, then re-run `axiom import hamiltonjlucas/formularium-types@<ver>` +
+`axiom generate` in each consumer (migrate does this automatically for generated
+packages; the engine is rewired by hand). The types package's own
+`messages/messages.proto` is the vocabulary's source of truth — hand-maintained, and
+its `Empty` must stay in multi-line form (the CLI's proto parser cannot see
+single-line `message Empty {}`, and invisible messages are dropped from consumers'
+import bindings).
 
 ## Flows
 

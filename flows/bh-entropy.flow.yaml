@@ -7,22 +7,22 @@ version: 0.1.0
 description: 'Black-hole mass (kg) -> horizon thermodynamics: fetches G_N, hbar, and c live from the Formularium constants catalog, derives the Planck length, the Schwarzschild horizon area, and the dyadic area quantum, then returns the Bekenstein-Hawking horizon entropy in nats alongside the conjectural dyadic-thread entropy in bits.'
 nodes:
     - alias: gn
-      package: hamiltonjlucas/formularium-constants@0.2.0
+      package: hamiltonjlucas/formularium-constants@0.3.0
       node: GetGN
       col: 0
       row: 1
     - alias: hb
-      package: hamiltonjlucas/formularium-constants@0.2.0
+      package: hamiltonjlucas/formularium-constants@0.3.0
       node: GetHbar
       col: 0
       row: 2
     - alias: cc
-      package: hamiltonjlucas/formularium-constants@0.2.0
+      package: hamiltonjlucas/formularium-constants@0.3.0
       node: GetC
       col: 0
       row: 0
     - alias: lp
-      package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+      package: hamiltonjlucas/formularium-gravity-thermo@0.3.0
       node: PlanckLength
       col: 1
       row: 1
@@ -30,12 +30,12 @@ nodes:
         join:
             kind: AND
     - alias: aq
-      package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+      package: hamiltonjlucas/formularium-gravity-thermo@0.3.0
       node: AreaQuantum
       col: 2
       row: 1
     - alias: area
-      package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+      package: hamiltonjlucas/formularium-gravity-thermo@0.3.0
       node: SchwarzschildArea
       col: 1
       row: 0
@@ -43,7 +43,7 @@ nodes:
         join:
             kind: AND
     - alias: bek
-      package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+      package: hamiltonjlucas/formularium-gravity-thermo@0.3.0
       node: BekensteinHawking
       col: 2
       row: 0
@@ -51,7 +51,7 @@ nodes:
         join:
             kind: AND
     - alias: bits
-      package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+      package: hamiltonjlucas/formularium-gravity-thermo@0.3.0
       node: SbhBits
       col: 3
       row: 0

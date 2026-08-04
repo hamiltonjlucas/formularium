@@ -18,30 +18,30 @@ input_facade:
       description: Optional free-form label for this sweep run; not used by any node.
 
 nodes:
-  - { alias: constants, package: hamiltonjlucas/formularium-constants@0.2.0, node: GetCatalog }
-  - { alias: electroweak, package: hamiltonjlucas/formularium-electroweak@0.2.0, node: GetCatalog }
-  - { alias: flavor, package: hamiltonjlucas/formularium-flavor@0.2.0, node: GetCatalog }
-  - { alias: bz_cascade, package: hamiltonjlucas/formularium-bz-cascade@0.2.0, node: GetCatalog }
-  - { alias: atomic, package: hamiltonjlucas/formularium-atomic@0.2.0, node: GetCatalog }
-  - { alias: em_si, package: hamiltonjlucas/formularium-em-si@0.2.0, node: GetCatalog }
-  - { alias: gravity_thermo, package: hamiltonjlucas/formularium-gravity-thermo@0.2.0, node: GetCatalog }
-  - { alias: cosmology, package: hamiltonjlucas/formularium-cosmology@0.2.0, node: GetCatalog }
-  - { alias: quantum_info, package: hamiltonjlucas/formularium-quantum-info@0.2.0, node: GetCatalog }
+  - { alias: constants, package: hamiltonjlucas/formularium-constants@0.3.0, node: GetCatalog }
+  - { alias: electroweak, package: hamiltonjlucas/formularium-electroweak@0.3.0, node: GetCatalog }
+  - { alias: flavor, package: hamiltonjlucas/formularium-flavor@0.3.0, node: GetCatalog }
+  - { alias: bz_cascade, package: hamiltonjlucas/formularium-bz-cascade@0.3.0, node: GetCatalog }
+  - { alias: atomic, package: hamiltonjlucas/formularium-atomic@0.3.0, node: GetCatalog }
+  - { alias: em_si, package: hamiltonjlucas/formularium-em-si@0.3.0, node: GetCatalog }
+  - { alias: gravity_thermo, package: hamiltonjlucas/formularium-gravity-thermo@0.3.0, node: GetCatalog }
+  - { alias: cosmology, package: hamiltonjlucas/formularium-cosmology@0.3.0, node: GetCatalog }
+  - { alias: quantum_info, package: hamiltonjlucas/formularium-quantum-info@0.3.0, node: GetCatalog }
   - alias: assemble
-    package: hamiltonjlucas/formularium-engine@0.1.0
+    package: hamiltonjlucas/formularium-engine@0.3.0
     node: AssembleCatalog
     config:
       join: { kind: AND }
-  - { alias: validate, package: hamiltonjlucas/formularium-engine@0.1.0, node: ValidateCatalog }
-  - { alias: dims, package: hamiltonjlucas/formularium-engine@0.1.0, node: CheckDimensions }
-  - { alias: units, package: hamiltonjlucas/formularium-engine@0.1.0, node: CheckUnits }
-  - { alias: graph, package: hamiltonjlucas/formularium-engine@0.1.0, node: BuildGraph }
-  - { alias: structure, package: hamiltonjlucas/formularium-engine@0.1.0, node: AnalyzeStructure }
-  - { alias: derive, package: hamiltonjlucas/formularium-engine@0.1.0, node: DeriveRelations }
-  - { alias: discover, package: hamiltonjlucas/formularium-engine@0.1.0, node: DiscoverRelations }
-  - { alias: buckingham, package: hamiltonjlucas/formularium-engine@0.1.0, node: Buckingham }
+  - { alias: validate, package: hamiltonjlucas/formularium-engine@0.3.0, node: ValidateCatalog }
+  - { alias: dims, package: hamiltonjlucas/formularium-engine@0.3.0, node: CheckDimensions }
+  - { alias: units, package: hamiltonjlucas/formularium-engine@0.3.0, node: CheckUnits }
+  - { alias: graph, package: hamiltonjlucas/formularium-engine@0.3.0, node: BuildGraph }
+  - { alias: structure, package: hamiltonjlucas/formularium-engine@0.3.0, node: AnalyzeStructure }
+  - { alias: derive, package: hamiltonjlucas/formularium-engine@0.3.0, node: DeriveRelations }
+  - { alias: discover, package: hamiltonjlucas/formularium-engine@0.3.0, node: DiscoverRelations }
+  - { alias: buckingham, package: hamiltonjlucas/formularium-engine@0.3.0, node: Buckingham }
   - alias: report
-    package: hamiltonjlucas/formularium-engine@0.1.0
+    package: hamiltonjlucas/formularium-engine@0.3.0
     node: AssembleSweepReport
     config:
       join: { kind: AND }

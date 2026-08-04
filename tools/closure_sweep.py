@@ -36,7 +36,7 @@ from pathlib import Path
 
 FLEET = Path(os.environ.get("FORMULARIUM_FLEET", Path(__file__).resolve().parents[2]))
 HANDLE = "hamiltonjlucas"
-VER = "0.2.0"
+VER = "0.3.0"
 DOMAIN_PKGS = [
     "formularium-electroweak",
     "formularium-flavor",
