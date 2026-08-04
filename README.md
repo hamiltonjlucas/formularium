@@ -33,16 +33,20 @@ Everything below is **published on the Axiom marketplace** under Apache-2.0.
 
 ## Using it
 
-All numeric I/O is in **natural units** (ħ = c = k_B = 1, GeV powers). Input field names
-preserve catalog symbol spelling (`M_W`, `G_N`, `sin2_thetaW`) — fidelity over proto
-naming convention, by design.
+Numeric I/O is in **each symbol's catalogued unit** — read the `unit` field on the
+constant (`axiom invoke .../Get<Symbol>`) before wiring a value into a formula. The
+particle-physics domains use GeV-power natural units (`M_W` → GeV), but constants whose
+source data is SI stay SI (`G_N` → m³/(kg·s²), `hbar` → J·s, `Delta_A_bit` → m²), so a
+formula like `planck_length` wants SI inputs, not ħ = c = 1. Input field names preserve
+catalog symbol spelling (`M_W`, `G_N`, `sin2_thetaW`) — fidelity over proto naming
+convention, by design.
 
 ```sh
 # A constant, with uncertainty/tier/source metadata:
 axiom invoke hamiltonjlucas/formularium-constants/GetMW --input '{}'
 # → {"symbol":"M_W","value":80.377,"uncertainty":0.012,"unit":"GeV","tier":"established",...}
 
-# A formula node COMPUTES (inputs = the RHS symbols, natural units):
+# A formula node COMPUTES (inputs = the RHS symbols, in their catalogued units):
 axiom invoke hamiltonjlucas/formularium-electroweak/WMass --input '{"g":0.6529,"v":246.21965}'
 # → {"value":80.378,"formula_id":"W_mass","computes":"M_W","tier":"established"}
 
@@ -63,15 +67,24 @@ each package's README (formula table with `computes` column).
 ### Composing formulas into new flows
 
 Formula nodes chain through ordinary edge adapters — a `ConstantSpec`'s number is its
-`value` field, a `FormulaResult`'s number is its `value` field:
+`value` field, a `FormulaResult`'s number is its `value` field. Write the pick as bare
+`value`: `value.value` fails at runtime (`no such key: value`) because these messages'
+field named `value` shadows CEL's whole-message binding.
 
 ```yaml
-# G_N -> Planck length -> horizon entropy, as a flow fragment
+# G_N, hbar, c -> Planck length, as a flow fragment (SI values, fetched live; verified)
 nodes:
   - { alias: gn, package: hamiltonjlucas/formularium-constants@0.2.0, node: GetGN }
-  - { alias: lp, package: hamiltonjlucas/formularium-gravity-thermo@0.2.0, node: PlanckLength }
+  - { alias: hb, package: hamiltonjlucas/formularium-constants@0.2.0, node: GetHbar }
+  - { alias: cc, package: hamiltonjlucas/formularium-constants@0.2.0, node: GetC }
+  - alias: lp
+    package: hamiltonjlucas/formularium-gravity-thermo@0.2.0
+    node: PlanckLength
+    config: { join: { kind: AND } }
 edges:
-  - { from: gn, to: lp, adapter: { G_N: "value.value", hbar: "1.0", c: "1.0" } }
+  - { from: gn, to: lp, adapter: { G_N: "value" } }
+  - { from: hb, to: lp, adapter: { hbar: "value" } }
+  - { from: cc, to: lp, adapter: { c: "value" } }
 ```
 
 ## Maintaining the catalog (the source-of-truth workflow)
